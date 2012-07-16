@@ -77,6 +77,17 @@ class NavierStrokes:
         y = self.column_matrix - dt_0 * v[1:-1, 1:-1]
 
         # Limit X and Y values to avoid the solver to blow up
+        m_min = np.zeros((size - 2)**2).reshape(size - 2, size - 2)
+        m_min = 0.5
+
+        m_max = np.zeros((size - 2)**2).reshape(size - 2, size - 2)
+        m_max = size - 2 + 0.5
+
+        x = (x + m_min + np.abs(x - m_min)) / 2
+        x = (x + m_max - np.abs(x - m_max)) / 2
+
+        y = (y + m_min + np.abs(y - m_min)) / 2
+        y = (y + m_max - np.abs(y - m_max)) / 2
 
         i_0 = x.round()
         i_1 = i_0 + 1
@@ -89,6 +100,10 @@ class NavierStrokes:
 
         t_1 = y - j_0
         t_0 = 1 - t_1
+
+        d[1:-1, 1:-1] = s_0 * (t_0 * d_0[1:-1, 1:-1] + t_1 * d_0[1:-1, 2:]) \
+                + s_1 * (t_0 * d_0[2:, 1:-1] + t_1 * d_0[2:, 2:])
+
         """
 
         for i in xrange(1, self.size):
@@ -118,7 +133,7 @@ class NavierStrokes:
                 t_1 = y - j_0
                 t_0 = 1 - t_1
 
-                d[i][j] = s_0 * (t_0 * d_0[i_0, j_0] + t_1 * d_0[i_0][j_0]) +\
+                d[i][j] = s_0 * (t_0 * d_0[i_0, j_0] + t_1 * d_0[i_0][j_1]) +\
                         s_1 * (t_0 * d_0[i_1][j_0] + t_1 * d_0[i_1][j_1])
 
         self.set_boundary(b, d)
