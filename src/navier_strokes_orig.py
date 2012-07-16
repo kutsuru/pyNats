@@ -55,8 +55,8 @@ class NavierStrokesOrig:
         for k in xrange(20):
             for i in xrange(1, self.size - 1):
                 for j in xrange(1, self.size - 1):
-                    x[i][j] = (x_0[i][j] + a * x_0[i - 1][j] + x[i + 1][j]
-                            + x[i][j - 1] + x[i][j + 1]) / c
+                    x[i][j] = (x_0[i][j] + a * (x[i - 1][j] + x[i + 1][j]
+                            + x[i][j - 1] + x[i][j + 1])) / c
             self.set_boundary(b, x)
 
     def diffuse(self, b, x, x_0, diff, dt):

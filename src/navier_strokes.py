@@ -61,8 +61,8 @@ class NavierStrokes:
 
     def linear_solve(self, b, x, x_0, a, c):
         for i in xrange(20):
-            x[1:-1, 1:-1] = (x_0[1:-1, 1:-1] + a * x_0[:-2, 1:-1] + x[2:, 1:-1]
-                    + x[1:-1, :-2] + x[1:-1, 2:]) / c
+            x[1:-1, 1:-1] = (x_0[1:-1, 1:-1] + a * (x[:-2, 1:-1] + x[2:, 1:-1]
+                    + x[1:-1, :-2] + x[1:-1, 2:])) / c
             self.set_boundary(b, x)
 
     def diffuse(self, b, x, x_0, diff, dt):
@@ -106,8 +106,8 @@ class NavierStrokes:
 
         """
 
-        for i in xrange(1, self.size):
-            for j in xrange(1, self.size):
+        for i in xrange(1, self.size - 1):
+            for j in xrange(1, self.size - 1):
                 x = i - dt_0 * u[i][j]
                 y = j - dt_0 * v[i][j]
 
