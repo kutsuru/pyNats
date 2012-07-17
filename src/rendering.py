@@ -10,7 +10,34 @@ import pygame
 from pygame.locals import *
 from OpenGL.GL import *
 import math
-#from OpenGL.GLU import *
+from navier_strokes_orig import NavierStrokesOrig
+
+class LazyNavier(object):
+    def __init__(self, main, size=5, dt=.1, diff=0., visc=0., force=5.,
+                 source=100.):
+        self.size = size + 2
+        self.dt = dt
+        self.diff = diff
+        self.visc = visc
+        self.force = force
+        self.source = source
+        
+        self.me = main(self.size)
+        
+    def velocity_step(self, dt=None):
+        if dt is None:
+            dt = self.dt
+            
+        self.me.velocity_step(self.me.u, self.me.v,
+                              self.me.u_prev, self.me.v_prev,
+                              self.visc, dt)
+                              
+    def density_step(self, dt=None):
+        if dt is None:
+            dt = self.dt
+                              
+        self.me.density_step(self.me.density, self.me.density_prev,
+                             self.me.u, self.me.v, self.diff, dt)
 
 class MatrixDensity(object):
     def __init__(self, matrix, x, y, width, height):
@@ -151,13 +178,11 @@ def draw(rendered):
 def main(args):
     init()
     
-    size = 30
-    mat = np.identity(size)
-    u = np.random.rand(size, size)
-    v = np.random.rand(size, size)
+    size = 30    
+    nats = LazyNavier(NavierStrokesOrig, size=size)
     
-    mdensity = MatrixDensity(mat, 0, 0, 640, 480)
-    mvectors = MatrixVectors(u, v, 0, 0, 640, 480)
+    mdensity = MatrixDensity(nats.me.density, 0, 0, 640, 480)
+    mvectors = MatrixVectors(nats.me.u, nats.me.v, 0, 0, 640, 480)
     
     rendered = [mdensity, mvectors]
     
@@ -167,8 +192,11 @@ def main(args):
     while True:
         delta = clock.get_time() / 1000.0
         update(delta, mdensity, mvectors)
-
-        mat *= 1 - delta
+        
+        print "hello"
+        nats.velocity_step(delta)
+        nats.density_step(delta)
+        print "olleh"
 
         clock.tick()
         draw(rendered)
