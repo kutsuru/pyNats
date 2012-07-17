@@ -8,20 +8,19 @@ class NavierStrokes:
 
     def __init__(self, size):
         self.size = size
-        self.card = size**2
 
-        self.x = np.zeros(self.card).reshape(size, size)
-        self.source = np.zeros(self.card).reshape(size, size)
+        self.x = np.zeros((self.size, self.size))
+        self.source = np.zeros((self.size, self.size))
 
-        self.u = np.zeros(self.card).reshape(size, size)
-        self.v = np.zeros(self.card).reshape(size, size)
-        self.u_prev = np.zeros(self.card).reshape(size, size)
-        self.v_prev = np.zeros(self.card).reshape(size, size)
+        self.u = np.zeros((self.size, self.size))
+        self.v = np.zeros((self.size, self.size))
+        self.u_prev = np.zeros((self.size, self.size))
+        self.v_prev = np.zeros((self.size, self.size))
 
-        self.density = np.zeros(self.card).reshape(size, size)
-        self.density_prev = np.zeros(self.card).reshape(size, size)
+        self.density = np.zeros((self.size, self.size))
+        self.density_prev = np.zeros((self.size, self.size))
 
-        self.column_matrix = np.zeros(self.card).reshape(size, size)[1:-1, 1:-1]
+        self.column_matrix = np.zeros((self.size, self.size))[1:-1, 1:-1]
 
         i = 0
 
@@ -72,16 +71,16 @@ class NavierStrokes:
     def advect(self, b, d, d_0, u, v, dt):
         dt_0 = dt * (self.size - 2)
 
-        """ >>> TO IMPROVE
+        """
         x = self.line_matrix - dt_0 * u[1:-1, 1:-1]
         y = self.column_matrix - dt_0 * v[1:-1, 1:-1]
 
         # Limit X and Y values to avoid the solver to blow up
-        m_min = np.zeros((size - 2)**2).reshape(size - 2, size - 2)
+        m_min = np.zeros((self.size - 2, self.size - 2))
         m_min = 0.5
 
-        m_max = np.zeros((size - 2)**2).reshape(size - 2, size - 2)
-        m_max = size - 2 + 0.5
+        m_max = np.zeros((self.size - 2, self.size - 2))
+        m_max = self.size - 2 + 0.5
 
         x = (x + m_min + np.abs(x - m_min)) / 2
         x = (x + m_max - np.abs(x - m_max)) / 2
@@ -105,7 +104,6 @@ class NavierStrokes:
                 + s_1 * (t_0 * d_0[2:, 1:-1] + t_1 * d_0[2:, 2:])
 
         """
-
         for i in xrange(1, self.size - 1):
             for j in xrange(1, self.size - 1):
                 x = i - dt_0 * u[i][j]
@@ -133,6 +131,7 @@ class NavierStrokes:
                 t_1 = y - j_0
                 t_0 = 1 - t_1
 
+
                 d[i][j] = s_0 * (t_0 * d_0[i_0, j_0] + t_1 * d_0[i_0][j_1]) +\
                         s_1 * (t_0 * d_0[i_1][j_0] + t_1 * d_0[i_1][j_1])
 
@@ -143,7 +142,7 @@ class NavierStrokes:
                 v[1:-1, :-2]) / (self.size - 2)
         self.set_boundary(0, div)
 
-        p = np.zeros(self.card).reshape(self.size, self.size)
+        p = np.zeros((self.size, self.size))
 
         self.linear_solve(0, p, div, 1, 4)
 
