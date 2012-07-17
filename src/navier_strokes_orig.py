@@ -58,6 +58,9 @@ class NavierStrokesOrig:
                     x[i][j] = (x_0[i][j] + a * (x[i - 1][j] + x[i + 1][j]
                             + x[i][j - 1] + x[i][j + 1])) / c
             self.set_boundary(b, x)
+            print x
+            print "====="
+            print x_0
 
     def diffuse(self, b, x, x_0, diff, dt):
         a = dt * diff * (self.size - 2)**2
@@ -94,24 +97,28 @@ class NavierStrokesOrig:
                 t_0 = 1 - t_1
 
                 d[i][j] = s_0 * (t_0 * d_0[i_0, j_0] + t_1 * d_0[i_0][j_1]) +\
-                        s_1 * (t_0 * d_0[i_1][j_0] + t_1 * d_0[i_1][j_1])
+                          s_1 * (t_0 * d_0[i_1][j_0] + t_1 * d_0[i_1][j_1])
 
         self.set_boundary(b, d)
 
     def project(self, u, v, p , div):
+
+        h = 1. / (self.size - 2)        
+        
         for i in xrange(1, self.size - 1):
             for j in xrange(1, self.size - 1):
-                div[i][j] = -0.5 * (u[i + 1][j] - u[i - 1][j] + v[i][j + 1]
-                        - v[i, j - 1]) / (self.size - 2)
+                div[i][j] = -0.5 * h * (u[i + 1][j] - u[i - 1][j] + v[i][j + 1]
+                        - v[i, j - 1])
                 p[i][j] = 0
         self.set_boundary(0, div)
+        self.set_boundary(0, p)
 
         self.linear_solve(0, p, div, 1, 4)
 
         for i in xrange(1, self.size - 1):
             for j in xrange(1, self.size - 1):
-                u[i][j] -= 0.5 * (self.size - 2) * (p[i + 1][j] - p[i - 1][j])
-                v[i][j] -= 0.5 * (self.size - 2) * (p[i][j + 1] - p[i][j - 2])
+                u[i][j] -= 0.5 * (p[i + 1][j] - p[i - 1][j]) / h
+                v[i][j] -= 0.5 * (p[i][j + 1] - p[i][j - 1]) / h
 
         self.set_boundary(1, u)
         self.set_boundary(2, v)
@@ -137,8 +144,8 @@ class NavierStrokesOrig:
         self.project(u, v, u_0, v_0)
 
         u, u_0 = u_0, u #Swap
-        self.advect(1, u, u_0, u_0, v_0, dt)
         v, v_0 = v_0, v #Swap
+        self.advect(1, u, u_0, u_0, v_0, dt)
         self.advect(2, v, v_0, u_0, v_0, dt)
 
         self.project(u, v, u_0, v_0)
