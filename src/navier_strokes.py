@@ -146,10 +146,10 @@ class NavierStrokes:
 
         self.linear_solve(0, p, div, 1, 4)
 
-        u[1:-1, 1:-1] -= -0.5 * (self.size - 2) * (p[2:, 1:-1] - p[:-2, 1:-1])
+        u[1:-1, 1:-1] -= 0.5 * (self.size - 2) * (p[2:, 1:-1] - p[:-2, 1:-1])
         self.set_boundary(1, u)
 
-        v[1:-1, 1:-1] -= -0.5 * (self.size - 2) * (p[1:-1, 2:] - p[1:-1, :-2])
+        v[1:-1, 1:-1] -= 0.5 * (self.size - 2) * (p[1:-1, 2:] - p[1:-1, :-2])
         self.set_boundary(2, v)
 
     def density_step(self, x, x_0, u, v, diff, dt):

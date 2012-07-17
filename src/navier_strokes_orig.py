@@ -110,8 +110,8 @@ class NavierStrokesOrig:
 
         for i in xrange(1, self.size - 1):
             for j in xrange(1, self.size - 1):
-                u[i][j] -= -0.5 * (self.size - 2) * (p[i + 1][j] - p[i - 1][j])
-                v[i][j] -= -0.5 * (self.size - 2) * (p[i][j + 1] - p[i][j - 2])
+                u[i][j] -= 0.5 * (self.size - 2) * (p[i + 1][j] - p[i - 1][j])
+                v[i][j] -= 0.5 * (self.size - 2) * (p[i][j + 1] - p[i][j - 2])
 
         self.set_boundary(1, u)
         self.set_boundary(2, v)
