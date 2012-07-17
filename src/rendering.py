@@ -11,6 +11,7 @@ from pygame.locals import *
 from OpenGL.GL import *
 import math
 from navier_strokes_orig import NavierStrokesOrig
+from navier_strokes import NavierStrokes
 
 class LazyNavier(object):
     def __init__(self, main, size=5, dt=.1, diff=0., visc=0., force=5.,
@@ -79,7 +80,7 @@ class MatrixDensity(object):
              + self._matrix.shape[1]
              - int(math.floor((y - self._y) / self._case_height)))
         
-        self._matrix[X, Y] = 1.0
+        self._matrix[X, Y] = 0.5
             
 class MatrixVectors(object):
     def __init__(self, u, v, x, y, width, height):
@@ -178,8 +179,9 @@ def draw(rendered):
 def main(args):
     init()
     
-    size = 30    
-    nats = LazyNavier(NavierStrokesOrig, size=size)
+    size = 20
+    nats = LazyNavier(NavierStrokes, size=size)
+    #nats = LazyNavier(NavierStrokesOrig, size=size)
     
     mdensity = MatrixDensity(nats.me.density, 0, 0, 640, 480)
     mvectors = MatrixVectors(nats.me.u, nats.me.v, 0, 0, 640, 480)
@@ -198,8 +200,8 @@ def main(args):
         nats.density_step(delta)
         print "olleh"
 
-        clock.tick()
         draw(rendered)
+        clock.tick()
 
 if __name__ == "__main__":
     main(sys.argv[1:])
