@@ -50,7 +50,7 @@ class MatrixDensity(object):
         
         self._case_width = width / float(matrix.shape[0])
         self._case_height = height / float(matrix.shape[1])
-        
+    
     def render(self):
         w = self._case_width
         h = self._case_height
@@ -93,7 +93,7 @@ class MatrixVectors(object):
         
         self._case_width = width / float(u.shape[0])
         self._case_height = height / float(v.shape[1])
-        
+    
     def render(self):
         w = self._case_width
         h = self._case_height
@@ -136,8 +136,7 @@ class MatrixVectors(object):
         self._u[X, Y+1] = REL_X / 2.0
         self._v[X, Y+1] = -REL_Y / 2.0        
         self._u[X, Y-1] = REL_X / 2.0
-        self._v[X, Y-1] = -REL_Y / 2.0        
-        
+        self._v[X, Y-1] = -REL_Y / 2.0
     
             
 def init():
@@ -153,6 +152,10 @@ def init():
     
 def update(delta, mdensity, mvectors):
     event = pygame.event.poll ()
+    
+    mdensity._matrix *= 0
+    mvectors._u *= 0
+    mvectors._v *= 0
     
     if event.type is QUIT:
       sys.exit(0)
@@ -179,12 +182,12 @@ def draw(rendered):
 def main(args):
     init()
     
-    size = 20
+    size = 10
     nats = LazyNavier(NavierStrokes, size=size)
     #nats = LazyNavier(NavierStrokesOrig, size=size)
     
-    mdensity = MatrixDensity(nats.me.density, 0, 0, 640, 480)
-    mvectors = MatrixVectors(nats.me.u, nats.me.v, 0, 0, 640, 480)
+    mdensity = MatrixDensity(nats.me.density_prev, 0, 0, 640, 480)
+    mvectors = MatrixVectors(nats.me.u_prev, nats.me.v_prev, 0, 0, 640, 480)
     
     rendered = [mdensity, mvectors]
     
@@ -195,10 +198,8 @@ def main(args):
         delta = clock.get_time() / 1000.0
         update(delta, mdensity, mvectors)
         
-        print "hello"
         nats.velocity_step(delta)
         nats.density_step(delta)
-        print "olleh"
 
         draw(rendered)
         clock.tick()

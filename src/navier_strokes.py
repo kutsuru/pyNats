@@ -9,9 +9,6 @@ class NavierStrokes:
     def __init__(self, size):
         self.size = size
 
-        self.x = np.zeros((self.size, self.size))
-        self.source = np.zeros((self.size, self.size))
-
         self.u = np.zeros((self.size, self.size))
         self.v = np.zeros((self.size, self.size))
         self.u_prev = np.zeros((self.size, self.size))
@@ -31,8 +28,8 @@ class NavierStrokes:
         self.line_matrix = self.column_matrix.transpose()
 
     # Add the source to the density
-    def add_source(self, x, source, dt):
-        x += source * dt
+    def add_source(self, x, s, dt):
+        x += s * dt
 
     def set_boundary(self, b, x):
         # Boundary lines
@@ -131,15 +128,14 @@ class NavierStrokes:
                 t_1 = y - j_0
                 t_0 = 1 - t_1
 
-
                 d[i][j] = s_0 * (t_0 * d_0[i_0, j_0] + t_1 * d_0[i_0][j_1]) +\
-                        s_1 * (t_0 * d_0[i_1][j_0] + t_1 * d_0[i_1][j_1])
+                          s_1 * (t_0 * d_0[i_1][j_0] + t_1 * d_0[i_1][j_1])
 
         self.set_boundary(b, d)
 
-    def project(self, u, v, p , div):
+    def project(self, u, v, p , div):     
         div[1:-1, 1:-1] = -0.5 * (u[2:, 1:-1] - u[:-2, 1:-1] + v[1:-1, 2:] -
-                v[1:-1, :-2]) / (self.size - 2)
+                          v[1:-1, :-2]) / (self.size - 2)
         self.set_boundary(0, div)
 
         p = np.zeros((self.size, self.size))
@@ -147,10 +143,11 @@ class NavierStrokes:
         self.linear_solve(0, p, div, 1, 4)
 
         u[1:-1, 1:-1] -= 0.5 * (self.size - 2) * (p[2:, 1:-1] - p[:-2, 1:-1])
-        self.set_boundary(1, u)
-
         v[1:-1, 1:-1] -= 0.5 * (self.size - 2) * (p[1:-1, 2:] - p[1:-1, :-2])
+        
+        self.set_boundary(1, u)
         self.set_boundary(2, v)
+
 
     def density_step(self, x, x_0, u, v, diff, dt):
         self.add_source(x, x_0, dt)
@@ -173,8 +170,8 @@ class NavierStrokes:
         self.project(u, v, u_0, v_0)
 
         u, u_0 = u_0, u #Swap
-        self.advect(1, u, u_0, u_0, v_0, dt)
         v, v_0 = v_0, v #Swap
+        self.advect(1, u, u_0, u_0, v_0, dt)
         self.advect(2, v, v_0, u_0, v_0, dt)
 
         self.project(u, v, u_0, v_0)
@@ -185,13 +182,10 @@ def main(argv):
     dt = 0.1
     diff = 0.
     visc = 0.
-    force = 5.0
-    source = 100.
     nats = NavierStrokes(size + 2)
 
     nats.velocity_step(nats.u, nats.v, nats.u_prev, nats.v_prev, visc, dt)
     nats.density_step(nats.density, nats.density_prev, nats.u, nats.v, diff, dt)
-
 
 if __name__ == "__main__":
     main (sys.argv[1:])

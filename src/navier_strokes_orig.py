@@ -9,18 +9,14 @@ class NavierStrokesOrig:
     def __init__(self, size):
 
         self.size = size
-        self.card = size**2
+        
+        self.u = np.zeros((self.size, self.size))
+        self.v = np.zeros((self.size, self.size))
+        self.u_prev = np.zeros((self.size, self.size))
+        self.v_prev = np.zeros((self.size, self.size))
 
-        self.x = np.zeros(self.card).reshape(size, size)
-        self.source = np.zeros(self.card).reshape(size, size)
-
-        self.u = np.zeros(self.card).reshape(size, size)
-        self.v = np.zeros(self.card).reshape(size, size)
-        self.u_prev = np.zeros(self.card).reshape(size, size)
-        self.v_prev = np.zeros(self.card).reshape(size, size)
-
-        self.density = np.zeros(self.card).reshape(size, size)
-        self.density_prev = np.zeros(self.card).reshape(size, size)
+        self.density = np.zeros((self.size, self.size))
+        self.density_prev = np.zeros((self.size, self.size))
 
     def add_source(self, x, s, dt):
         for i in xrange(self.size):
@@ -58,9 +54,6 @@ class NavierStrokesOrig:
                     x[i][j] = (x_0[i][j] + a * (x[i - 1][j] + x[i + 1][j]
                             + x[i][j - 1] + x[i][j + 1])) / c
             self.set_boundary(b, x)
-            print x
-            print "====="
-            print x_0
 
     def diffuse(self, b, x, x_0, diff, dt):
         a = dt * diff * (self.size - 2)**2
@@ -112,7 +105,7 @@ class NavierStrokesOrig:
                 p[i][j] = 0
         self.set_boundary(0, div)
         self.set_boundary(0, p)
-
+        
         self.linear_solve(0, p, div, 1, 4)
 
         for i in xrange(1, self.size - 1):
@@ -156,8 +149,6 @@ def main(argv):
     dt = 0.1
     diff = 0.
     visc = 0.
-    force = 5.0
-    source = 100.
     nats = NavierStrokesOrig(size + 2)
 
     nats.velocity_step(nats.u, nats.v, nats.u_prev, nats.v_prev, visc, dt)
