@@ -67,7 +67,8 @@ class Neighborer(object):
         
     def within_neighbors(self, i):
         gx, gy = self._xy_to_grid(*self._C[i,:])
-        return self._precomp[gx][gy]
+        return (self._precomp[gx][gy], 
+                self._grid[gx][gy].index(i))
         
     def leaving_neighbors(self, i, C, S, F):
         gx, gy = self._xy_to_grid(*self._C[i,:])

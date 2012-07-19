@@ -7,8 +7,8 @@ from OpenGL.GL import *
 
 
 class Boids(object):
-    def __init__(self, count, x, y, width, height, slices=1):
-        count = 4
+    def __init__(self, count, x, y, width, height, slices=4):
+        count = 5
         self._count = count
 
         self._coordinates = np.random.rand(count, 2)
@@ -30,15 +30,40 @@ class Boids(object):
         C, S, F = self.bounding(C, S, F, delta)
         C, S, F = self.cohesion(C, S, F, delta)
         C, S, F = self.alignement(C, S, F, delta)
+        C, S, F = self.separation(C, S, F, delta)
         
         C, S, F = self.physic(C, S, F, delta)
         self._coordinates, self._speeds, self._forces =  C, S, F
+        
+    def separation(self, C, S, F, delta):
+        self._neighborer.update(C, S, F)
+        
+        for i in range(self._count):
+            ((nC, nS, nF), local_i) = self._neighborer.within_neighbors(i)
+            
+            count = nC.shape[0]
+            
+            for j in range(count):
+                if i == j:
+                    continue
+                
+                amoinsb = nC[local_i,:] - nC[j,:]
+                length = math.hypot(*amoinsb)
+                
+                if (length < 0.1):
+                    length = max(length, 0.01)
+                    coef = 0.5 / (1 + 500 * length ** 2)
+                    nF[local_i,:] += (amoinsb/ length) * coef
+            
+            self._neighborer.leaving_neighbors(i, nC, nS, nF)
+        return self._neighborer.grab_csf()
+        
         
     def cohesion(self, C, S, F, delta):
         self._neighborer.update(C, S, F)
         
         for i in range(self._count):
-            nC, nS, nF = self._neighborer.within_neighbors(i)
+            ((nC, nS, nF), local_i) = self._neighborer.within_neighbors(i)
             
             count = nC.shape[0]
             
@@ -55,14 +80,14 @@ class Boids(object):
         self._neighborer.update(C, S, F)
         
         for i in range(self._count):
-            nC, nS, nF = self._neighborer.within_neighbors(i)
+            ((nC, nS, nF), local_i) = self._neighborer.within_neighbors(i)
             
             count = nC.shape[0]
             
             if count > 1:
                 gf = nF.mean(0)
                 Gf = np.tile(gf, (count, 1))
-                nF += (Gf - nF)
+                nF += (Gf - nF) * 0.1
             
             self._neighborer.leaving_neighbors(i, nC, nS, nF)
             
