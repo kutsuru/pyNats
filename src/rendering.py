@@ -17,6 +17,9 @@ import OpenGL
 from OpenGL.GL import shaders
 import time
 
+#import pyximport; pyximport.install()
+from matrixdensityslow import MatrixDensity
+
 class LazyNavier(object):
     def __init__(self, main, size=5, dt=.1, diff=0., visc=0., force=5.,
                  source=100.):
@@ -42,76 +45,7 @@ class LazyNavier(object):
             dt = self.dt
                               
         self.me.density_step(self.me.density, self.me.density_prev,
-                             self.me.u, self.me.v, self.diff, dt)      
-        
-class MatrixDensity(object):
-    def __init__(self, matrix, x, y, width, height):
-        self._matrix = matrix
-        self._x = x
-        self._y = y
-        self._width = width
-        self._height = height
-        
-        self._matrix_width = matrix.shape[0]
-        
-        self._case_width = width / float(matrix.shape[0])
-        self._case_height = height / float(matrix.shape[1])
-        
-        # Generate the vertex and color array for opengl
-        nb_squares = matrix.size
-        nb_triangles = nb_squares * 2
-        self._vertex = np.zeros((nb_triangles * 3, 2)) # 3 vert per triangle
-        
-        x, y = 0, 0
-        step_x = self._case_width
-        step_y = self._case_height
-        
-        for i in range(nb_squares):
-            xx = i % matrix.shape[0]
-            yy = i / matrix.shape[0]
-            
-            x, y = xx  * step_x, yy * step_y
-            self._vertex[i * 6,:] = [x, y]
-            self._vertex[i * 6 + 1,:] = [x + step_x, y]
-            self._vertex[i * 6 + 2,:] = [x, y + step_y]
-            self._vertex[i * 6 + 3,:] = [x + step_x, y]
-            self._vertex[i * 6 + 4,:] = [x + step_x, y + step_y]
-            self._vertex[i * 6 + 5,:] = [x, y + step_y]
-            
-        self._colors = np.zeros((nb_triangles * 3, 2)) # 1 color per vertex
-        self._colors = np.random.rand(nb_triangles * 3, 3)
-        
-        self._nb_squares = nb_squares
-        self._nb_vertex = nb_triangles * 3
-        
-    def render(self):
-        # Update color array
-        it = np.nditer(self._matrix, flags=['multi_index'])
-        while not it.finished:
-            value, (X, Y) = it[0], it.multi_index
-            i = 6 * (Y * self._matrix.shape[0] + X)
-            self._colors[i:i+6,:] = np.array((value, value, value))
-            
-            it.iternext()
-        
-        # Render vertex
-        glVertexPointerd(self._vertex)
-        glColorPointerd(self._colors)
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glEnableClientState(GL_COLOR_ARRAY)
-        glDrawArrays(GL_TRIANGLES, 0, self._nb_vertex)
-            
-    def click_at(self, x, y):
-        X = int(math.floor((x - self._x) / self._case_width))
-        Y = (-1
-             + self._matrix.shape[1]
-             - int(math.floor((y - self._y) / self._case_height)))
-        
-        self._matrix[X, Y] = 0.9
-        self._matrix[X + 1, Y] = 0.9
-        self._matrix[X - 1, Y] = 0.9
-        self._matrix[X, Y + 1] = 0.9
-        self._matrix[X, Y - 1] = 0.9
+                             self.me.u, self.me.v, self.diff, dt)        
             
 class MatrixVectors(object):
     def __init__(self, u, v, x, y, width, height):
@@ -126,6 +60,7 @@ class MatrixVectors(object):
         self._case_height = height / float(v.shape[1])
     
     def render(self):
+        
         w = self._case_width
         h = self._case_height
         
@@ -233,12 +168,14 @@ def main(args):
     
     while True:
         delta = clock.get_time() / 1000.0
+        
         update(delta, mdensity, mvectors)
         
         nats.velocity_step(delta)
         nats.density_step(delta)
-
+        
         draw(rendered)
+        
         clock.tick()
 
 if __name__ == "__main__":
