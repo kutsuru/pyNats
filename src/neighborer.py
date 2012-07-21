@@ -69,7 +69,8 @@ class Neighborer(object):
             # Keep neighbors that i can see:
             # (speed & neighbor_vector with the same direction)
             neighbors = filter(lambda n: (n != i) 
-                                         and (np.dot(C[n] - C[i], S[i]) > 0),
+                                         and (np.dot(C[n] - C[i], S[i]) > 0)
+                                         and sum((C[n] - C[i])** 2) < 0.05,
                                neighbors)
             visible.append(neighbors)
             
@@ -91,7 +92,7 @@ class Neighborer(object):
                 neighbors_C[j,:] = C[neighbors_id,:]
                 neighbors_S[j,:] = S[neighbors_id,:]
                 
-            data.append((C[i,:], neighbors_C, neighbors_S, neighbors_count))      
+            data.append((C[i,:], S[i,:], neighbors_C, neighbors_S, neighbors_count))      
         return data
                         
     def update(self, C, S, F):

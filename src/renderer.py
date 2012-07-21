@@ -37,6 +37,8 @@ class Renderer(object):
         glLoadIdentity()
         glOrtho (0, width, 0, height, -1, 1)
         
+        self._debug = False
+        
     def update(self, delta, mdensity, mvectors):
         event = pygame.event.poll ()
         
@@ -49,7 +51,9 @@ class Renderer(object):
         elif event.type is KEYDOWN:
           if event.key is K_ESCAPE:
             sys.exit(0)
-        elif event.type is MOUSEMOTION	:
+          elif event.key is K_d:
+              self._debug = not self._debug
+        elif event.type is MOUSEMOTION    :
             right = event.buttons[2]
             left = event.buttons[0]
             if right:
@@ -61,7 +65,7 @@ class Renderer(object):
     def draw(self, rendered):
         glClear(GL_COLOR_BUFFER_BIT)
         for r in rendered:
-            r.render()
+            r.render(self._debug)
         glFlush()
         pygame.display.flip()
 

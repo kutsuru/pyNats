@@ -8,12 +8,12 @@ import boids_rules
 
 class Boids(object):
     """Boids simulator"""
-    def __init__(self, count, x, y, width, height, slices=4):
+    def __init__(self, count, x, y, width, height, slices=6):
         self._count = count
 
         self._coordinates = np.random.rand(count, 2)
-        self._speeds = np.random.rand(count, 2) - 0.5
-        self._forces = np.random.rand(count, 2) - 0.5
+        self._speeds = (np.random.rand(count, 2) - 0.5) * 0.1
+        self._forces = np.zeros((count, 2))
 
         self._x = x
         self._y = y
@@ -28,7 +28,8 @@ class Boids(object):
         C, S, F = self._coordinates, self._speeds, self._forces
         self._neighborer.update(C, S, F)
         
-        rules = [boids_rules.rule_bounding]
+        rules = [boids_rules.rule_cohesion, boids_rules.rule_separation,
+                 boids_rules.rule_alignement]
         
         for i in xrange(C.shape[0]):
             data = self._neighborer.neighbors_data(i)
@@ -40,11 +41,12 @@ class Boids(object):
         
     def physic(self, C, S, F, delta):
         """Physic, update speeds and coordinates, add friction force."""
+        # Friction
         F -= S * abs(S)
-        accel = F / 1.0
+        #F += (1 / ((S + 0.0001) * 1000))
         
+        accel = F
         S += accel * delta
-        
         C += S * delta
         C %= 1
         
