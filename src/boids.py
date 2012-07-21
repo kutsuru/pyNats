@@ -4,118 +4,42 @@ import numpy as np
 import math
 from pygame.locals import *
 from OpenGL.GL import *
-
+import boids_rules
 
 class Boids(object):
     """Boids simulator"""
     def __init__(self, count, x, y, width, height, slices=4):
-        count = 5
         self._count = count
 
         self._coordinates = np.random.rand(count, 2)
         self._speeds = np.random.rand(count, 2) - 0.5
         self._forces = np.random.rand(count, 2) - 0.5
-        
-        self.gravity = np.zeros((1, 2))
 
         self._x = x
         self._y = y
         self._width = width
         self._height = height
+        
         self._neighborer = Neighborer(slices)
         
     def update(self, delta):
+        """Update the simulation, apply forces, move the boids,..."""
         self._forces = np.zeros(self._forces.shape)
         C, S, F = self._coordinates, self._speeds, self._forces
+        self._neighborer.update(C, S, F)
         
-        C, S, F = self.bounding(C, S, F, delta)
-        C, S, F = self.cohesion(C, S, F, delta)
-        C, S, F = self.alignement(C, S, F, delta)
-        C, S, F = self.separation(C, S, F, delta)
+        rules = [boids_rules.rule_bounding]
+        
+        for i in xrange(C.shape[0]):
+            data = self._neighborer.neighbors_data(i)
+            for r in rules:
+                F[i,:] += r(*data)
         
         C, S, F = self.physic(C, S, F, delta)
         self._coordinates, self._speeds, self._forces =  C, S, F
         
-    def separation(self, C, S, F, delta):
-        self._neighborer.update(C, S, F)
-        
-        for i in range(self._count):
-            ((nC, nS, nF), local_i) = self._neighborer.within_neighbors(i)
-            
-            count = nC.shape[0]
-            
-            for j in range(count):
-                if i == j:
-                    continue
-                
-                amoinsb = nC[local_i,:] - nC[j,:]
-                length = math.hypot(*amoinsb)
-                
-                if (length < 0.1):
-                    length = max(length, 0.01)
-                    coef = 0.5 / (1 + 500 * length ** 2)
-                    nF[local_i,:] += (amoinsb/ length) * coef
-            
-            self._neighborer.leaving_neighbors(i, nC, nS, nF)
-        return self._neighborer.grab_csf()
-        
-        
-    def cohesion(self, C, S, F, delta):
-        self._neighborer.update(C, S, F)
-        
-        for i in range(self._count):
-            (nC, nS, nF) = self._neighborer.within_neighbors(i)
-            
-            count = nC.shape[0]
-            
-            if count > 1:
-                g = nC.mean(0)
-                G = np.tile(g, (count, 1))
-                nF += (G - nC)
-            
-            self._neighborer.leaving_neighbors(i, nC, nS, nF)
-            
-        return self._neighborer.grab_csf()
-        
-    def alignement(self, C, S, F, delta):
-        self._neighborer.update(C, S, F)
-        
-        for i in range(self._count):
-            ((nC, nS, nF), local_i) = self._neighborer.within_neighbors(i)
-            
-            count = nC.shape[0]
-            
-            if count > 1:
-                gf = nF.mean(0)
-                Gf = np.tile(gf, (count, 1))
-                nF += (Gf - nF) * 0.1
-            
-            self._neighborer.leaving_neighbors(i, nC, nS, nF)
-            
-        return self._neighborer.grab_csf()
-                
-    def bounding(self, C, S, F, delta):
-        bound = 0.1
-        bound_left = bound
-        bound_right = 1 - bound
-        bound_top = 1 - bound
-        bound_bottom = bound
-        
-        
-        for i in range(C.shape[0]):
-            if C[i,0] < bound_left:
-                F[i,0] += 0.9
-            elif C[i,0] > bound_right:
-                F[i,0] -= 0.9
-                
-            if C[i,1] < bound_bottom:
-                F[i,1] += 0.9
-            elif C[i,1] > bound_top:
-                F[i,1] -= 0.9
-                
-        return (C, S, F)
-    
     def physic(self, C, S, F, delta):
+        """Physic, update speeds and coordinates, add friction force."""
         F -= S * abs(S)
         accel = F / 1.0
         
@@ -125,9 +49,8 @@ class Boids(object):
         C %= 1
         
         return (C, S, F)
-
-    def render_boid(self, i, x, y, direction, color=(0.0, 1.0, 0.0), debug=False):
         
+    def render_boid(self, i, x, y, direction, color=(0.0, 1.0, 0.0), debug=False):
         wd2, h = 10 / 2., 10.
         
         glPushMatrix()
