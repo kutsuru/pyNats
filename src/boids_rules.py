@@ -27,6 +27,7 @@ def rule_cohesion(C, S, neighbors_C, neighbors_S, neighbors_count):
 
 def rule_alignement(C, S, neighbors_C, neighbors_S, neighbors_count):
     F = np.zeros(2)
+    
     if neighbors_count > 0:
         gs = neighbors_S.mean(0)
         F += (gs - S) * 1

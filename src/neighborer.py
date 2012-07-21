@@ -66,9 +66,11 @@ class Neighborer(object):
             gx, gy = self._xy_to_grid(*C[i,:])
             
             neighbors = grid_neighborhoods[gx][gy]
+            
             # Keep neighbors that i can see:
-            # (speed & neighbor_vector with the same direction)
-            neighbors = filter(lambda n: (n != i) 
+            # speed & neighbor_vector with the same direction (he looks at it)
+            # distance < some constant (close enough)
+            neighbors = filter(lambda n: (n != i)
                                          and (np.dot(C[n] - C[i], S[i]) > 0)
                                          and sum((C[n] - C[i])** 2) < 0.05,
                                neighbors)

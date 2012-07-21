@@ -42,8 +42,10 @@ class Boids(object):
     def physic(self, C, S, F, delta):
         """Physic, update speeds and coordinates, add friction force."""
         # Friction
-        F -= S * abs(S)
-        #F += (1 / ((S + 0.0001) * 1000))
+        #F -= S * abs(S)
+        
+        # Autospeed
+        #F += (0.5 / ((S + 0.001) * 100))
         
         accel = F
         S += accel * delta
