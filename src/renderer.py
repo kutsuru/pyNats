@@ -30,7 +30,7 @@ class Renderer(object):
         pygame.init()
         pygame.display.set_mode((width, height), OPENGL|DOUBLEBUF)
         
-        glClearColor(1.0, 1.0, 1.0, 0.0)
+        glClearColor(0.1, 0.1, 0.1, 0.1)
         glColor3f(0.0, 0.0, 0.0)
         glPointSize(4.0)
         glMatrixMode(GL_PROJECTION)
@@ -77,7 +77,7 @@ def main(args):
     
     rendered = []
 
-    bs = Boids(bs_size, 0, 0, width, width)
+    bs = Boids(bs_size, 0, 0, width, height)
     nats = LazyNavier(NavierStrokes, size=ns_size)
     #nats = LazyNavier(NavierStrokesOrig, size=size)
     
