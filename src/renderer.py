@@ -26,16 +26,16 @@ class Renderer(object):
     """
     Base class for a renderer (uncomplete).
     """
-    def init(self):
+    def __init__(self, width, height):
         pygame.init()
-        pygame.display.set_mode((640, 480), OPENGL|DOUBLEBUF)
+        pygame.display.set_mode((width, height), OPENGL|DOUBLEBUF)
         
         glClearColor(1.0, 1.0, 1.0, 0.0)
         glColor3f(0.0, 0.0, 0.0)
         glPointSize(4.0)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        glOrtho (0, 640, 0, 480, -1, 1)
+        glOrtho (0, width, 0, height, -1, 1)
         
     def update(self, delta, mdensity, mvectors):
         event = pygame.event.poll ()
@@ -67,21 +67,29 @@ class Renderer(object):
 
 
 def main(args):
-    renderer = Renderer()
-    renderer.init()
     
-    bs = Boids(20, 0, 0, 640, 480)
+    width, height = args.size
+    bs_size = args.boids
+    ns_size = args.navierstrokes
+    
+    renderer = Renderer(width, height)
     fps = TextDisplay("fps:", 0, 30)
     
-    size = 30
-    nats = LazyNavier(NavierStrokes, size=size)
+    rendered = []
+
+    bs = Boids(bs_size, 0, 0, width, width)
+    nats = LazyNavier(NavierStrokes, size=ns_size)
     #nats = LazyNavier(NavierStrokesOrig, size=size)
     
-    mdensity = MatrixDensity(nats.me.density_prev, 0, 0, 640, 480)
-    mvectors = MatrixVectors(nats.me.u_prev, nats.me.v_prev, 0, 0, 640, 480)
+    mdensity = MatrixDensity(nats.me.density_prev, 0, 0, width, height)
+    mvectors = MatrixVectors(nats.me.u_prev, nats.me.v_prev, 0, 0, width, height)
     
-    rendered = [mdensity, mvectors, bs, fps]
-    
+    if ns_size > 0:
+        rendered += [mdensity, mvectors]
+    if bs_size > 0:
+        rendered.append(bs)        
+    rendered.append(fps)
+        
     clock = pygame.time.Clock()
     clock.tick()
     
@@ -90,13 +98,13 @@ def main(args):
         
         renderer.update(delta, mdensity, mvectors)
         
-        nats.velocity_step(delta)
-        nats.density_step(delta)
+        if ns_size > 0:
+            nats.velocity_step(delta)
+            nats.density_step(delta)
+        if bs_size > 0:
+            bs.update(delta)
         
-        #bs.update(delta)
-        
-        fps.text = "fps:" + "%.2f" % (clock.get_fps())
-        
+        fps.text = "fps:" + "%.2f" % (clock.get_fps())        
         renderer.draw(rendered)
         
         clock.tick()
