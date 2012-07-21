@@ -3,6 +3,9 @@ import numpy as np
 import math
 
 class Neighborer(object):
+    """
+    Compute the neighbor matrix for neighbors
+    """
     def __init__(self, slices):
         self._slices = slices
         
@@ -46,33 +49,53 @@ class Neighborer(object):
         precomp = self._grid_generate()
         for i in range(slices):
             for j in range(slices):
+                precomp[i][j] = []
+                
                 neighbors = self._grid[i][j]
                 neighbors_count = len(neighbors)
                 
                 if neighbors_count == 0:
                     continue
                 
-                alt_C = np.zeros((neighbors_count, 2))
-                alt_S = np.zeros((neighbors_count, 2))
-                alt_F = np.zeros((neighbors_count, 2))
-
                 for (local_i, global_i) in enumerate(neighbors):
-                    alt_C[local_i,:] = C[global_i,:]
-                    alt_S[local_i,:] = S[global_i,:]
-                    alt_F[local_i,:] = F[global_i,:]
                     
-                precomp[i][j] = (alt_C, alt_S, alt_F)
+                    def is_visible(neighbor):
+                        i_c = self._C[global_i,:]
+                        i_s = self._S[global_i,:]
+                        n_c = self._C[neighbor,:]
+                        
+                        v_dist = i_c - n_c
+                        dot = np.dot(i_s, v_dist)
+                        
+                        return dot > 0
+                        
+                    local_neighbors = filter(is_visible, neighbors)
+                    local_neighbors_count = len(local_neighbors)
+                    
+                    alt_C = np.zeros((local_neighbors_count, 2))
+                    alt_S = np.zeros((local_neighbors_count, 2))
+                    alt_F = np.zeros((local_neighbors_count, 2))
+                    
+                    for (local_n, global_n) in enumerate(local_neighbors):
+                        alt_C[local_n,:] = C[global_n,:]
+                        alt_S[local_n,:] = S[global_n,:]
+                        alt_F[local_n,:] = F[global_n,:]
+                        
+                    precomp[i][j].append((local_neighbors, alt_C, alt_S, alt_F))
                 
         self._precomp = precomp
         
     def within_neighbors(self, i):
         gx, gy = self._xy_to_grid(*self._C[i,:])
-        return (self._precomp[gx][gy], 
+        
+        local_i = self._grid[gx][gy].index(i)
+        
+        return (self._precomp[gx][gy][local_i][1:], 
                 self._grid[gx][gy].index(i))
         
     def leaving_neighbors(self, i, C, S, F):
         gx, gy = self._xy_to_grid(*self._C[i,:])
-        neighbors = self._grid[gx][gy]
+        neighbors = self._grid[gx][gy][i]
         
         for (local_i, global_i) in enumerate(neighbors):
             self._C[global_i,:] = C[local_i,:]

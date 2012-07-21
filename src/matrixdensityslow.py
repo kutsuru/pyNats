@@ -1,18 +1,11 @@
 # -*- coding: utf-8 -*-
-import sys
 import numpy as np
-import pygame
 from pygame.locals import *
 from OpenGL.GL import *
 import math
-from navier_strokes_orig import NavierStrokesOrig
-from navier_strokes import NavierStrokes
-from OpenGL.arrays import vbo
-import OpenGL
-from OpenGL.GL import shaders
-import time
 
 class MatrixDensity(object):
+    """Density matrix interaction and rendering"""
     def __init__(self, matrix, x, y, width, height):
         self._matrix = matrix
         self._x = x
@@ -44,6 +37,8 @@ class MatrixDensity(object):
         
         self._nb_squares = nb_squares
         
+        glPointSize(self._case_width)
+        
     def render(self):
         
         width = self._matrix.shape[0]
@@ -63,7 +58,6 @@ class MatrixDensity(object):
             it.iternext()
         
         # Render vertex
-        glPointSize(40.0)
         glVertexPointerd(self._vertex)
         glColorPointerd(self._colors)
         glEnableClientState(GL_VERTEX_ARRAY)

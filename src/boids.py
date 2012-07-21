@@ -7,6 +7,7 @@ from OpenGL.GL import *
 
 
 class Boids(object):
+    """Boids simulator"""
     def __init__(self, count, x, y, width, height, slices=4):
         count = 5
         self._count = count
@@ -63,7 +64,7 @@ class Boids(object):
         self._neighborer.update(C, S, F)
         
         for i in range(self._count):
-            ((nC, nS, nF), local_i) = self._neighborer.within_neighbors(i)
+            (nC, nS, nF) = self._neighborer.within_neighbors(i)
             
             count = nC.shape[0]
             
