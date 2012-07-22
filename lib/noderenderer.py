@@ -82,7 +82,7 @@ class NodeRenderer(Node):
         
         color = (0.2, 1.0, 0.2)
         wd2, h = 10 / 2., 10.
-        direction = math.degrees(math.atan2(dir_x, dir_y))
+        direction = math.degrees(math.atan2(dir_y, dir_x))
         
         glPushMatrix()
         glTranslatef(x, y, 0.)
