@@ -84,7 +84,7 @@ class Node(object):
         
     # == Preset communications facilities
     def msg_sysexit(self, name_from, *args):
-        self.map_processes(lambda (name, info): self.send("sysexit", name))
+        self.map_processes(lambda name, info: self.send("sysexit", name))
         self._running = False
         
     def msg_forward(self, name_from, mess_name, orig_name, args):
