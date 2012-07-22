@@ -52,11 +52,9 @@ class NodeRenderer(Node):
         event = pygame.event.poll()
         if event.type is QUIT:
             self.send("sysexit", self._master)
-            self._running = False
         elif event.type is KEYDOWN:
             if event.key is K_ESCAPE:
                 self.send("sysexit", self._master)
-                self._running = False
             elif event.key is K_d:
                 self._debug = not self._debug
 

@@ -6,6 +6,7 @@ in order to understand Python multi-core capabilities.
 Heavily inspired by http://code.google.com/p/multiproc-pygame/
 """
 import multiprocessing
+import time
 
 class Node(object):
     """Parallelized node"""
@@ -29,6 +30,8 @@ class Node(object):
             self._pipes[self._master].send(("forward", full_mess))
             
     def attach(self, node):
+        """Attach the given node,
+        all attached nodes will be run with their master."""
         name = node._name
         p1, p2 = multiprocessing.Pipe()
         node.connect(self._name, p2)
@@ -70,7 +73,15 @@ class Node(object):
             self.event_update()
             self._pipes_update()
             
+        self._cleanup()
         self.event_stop()
+        
+    def _cleanup(self):
+        fct_alive = lambda name, (process, pipe, node): process.is_alive()
+        
+        while True in self.map_processes(fct_alive):
+            time.sleep(0.01)
+        
         
     def map_processes(self, fct):
         return [fct(name, info) for (name, info) in self._processes.items()]
