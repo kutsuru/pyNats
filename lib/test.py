@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import sys
-from node import Node
 import os
+
+from node import Node
 from noderenderer import NodeRenderer
 from nodeboidssimulator import NodeBoidsSimulator
 from dummynode import DummyNode
@@ -19,10 +20,10 @@ def dummy_test():
 
     master.run()
     
-def engine_test():
+def engine_test(count):
     master = Node("MASTER")
     renderer = NodeRenderer(640, 480)
-    boids_simulator = NodeBoidsSimulator(20)
+    boids_simulator = NodeBoidsSimulator(count)
     
     master.attach(renderer)
     master.attach(boids_simulator)
@@ -31,7 +32,7 @@ def engine_test():
     
 def main(args):
     dummy_test()
-    engine_test()
+    engine_test(int(args[0]))
     
 if __name__ == "__main__":
     main(sys.argv[1:])

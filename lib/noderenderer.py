@@ -36,17 +36,21 @@ class NodeRenderer(Node):
         self.update_events()
         self.draw()
         
-        self.mean_fps = (self.mean_fps + self._clock.get_fps()) / 2.0
-        
+        self.mean_fps = (self.mean_fps + self._clock.get_fps()) / 2.0        
         self._clock.tick()
+        
+    def msg_sysexit(self, *args):
+        print self.mean_fps
+        Node.msg_sysexit(self, *args)
         
     def msg_boid_spawn(self, name_from, (boid_id, coords)):        
         self._boids_count += 1
         self._boids_coordinates[boid_id] = coords
         
-    def msg_boids_update(self, name_from, boids):
+    def msg_boids_update(self, name_from, sender, boids):
         for (boid_id, coords) in boids:
             self._boids_coordinates[boid_id] = coords
+        self.send("ack_boids_update", sender)
         
     def update_events(self):        
         event = pygame.event.poll()

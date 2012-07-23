@@ -82,7 +82,6 @@ class Node(object):
         while True in self.map_processes(fct_alive):
             time.sleep(0.01)
         
-        
     def map_processes(self, fct):
         return [fct(name, info) for (name, info) in self._processes.items()]
         
