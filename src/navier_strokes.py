@@ -8,7 +8,7 @@ class NavierStrokes:
 
     def __init__(self, size):
         self.size = size
-        self.debug = True
+        self.debug = False
 
         self.u = np.zeros((self.size, self.size))
         self.v = np.zeros((self.size, self.size))
@@ -17,16 +17,6 @@ class NavierStrokes:
 
         self.density = np.zeros((self.size, self.size))
         self.density_prev = np.zeros((self.size, self.size))
-
-        self.column_matrix = np.zeros((self.size, self.size))[1:-1, 1:-1]
-
-        i = 0
-
-        for line in self.column_matrix:
-            line += i
-            i += 1
-
-        self.line_matrix = self.column_matrix.transpose()
 
     # Add the source to the density
     def add_source(self, x, s, dt):
@@ -85,7 +75,8 @@ class NavierStrokes:
                 x = i - dt_0 * u[i][j]
                 y = j - dt_0 * v[i][j]
 
-                print "X Value : " + str(x) + ", Y Value : " + str(y)
+                if self.debug:
+                    print "X Value : " + str(x) + ", Y Value : " + str(y)
 
                 if x < 0.5:
                     x = 0.5
@@ -135,8 +126,9 @@ class NavierStrokes:
         self.set_boundary(2, v)
 
     def density_step(self, x, x_0, u, v, diff, dt):
-        print "DENSITY STEP >>>"
-        self.debug = True
+        if self.debug:
+            print "DENSITY STEP >>>"
+        self.debug = False
         self.add_source(x, x_0, dt)
 
         x, x_0 = x_0, x # Swap
@@ -144,10 +136,13 @@ class NavierStrokes:
 
         x, x_0 = x_0, x # Swap
         self.advect(0, x, x_0, u, v, dt)
-        print "<<< DENSITY STEP"
+
+        if self.debug:
+            print "<<< DENSITY STEP"
 
     def velocity_step(self, u, v, u_0, v_0, visc, dt):
-        print "VELOCITY STEP >>>"
+        if self.debug:
+            print "VELOCITY STEP >>>"
         self.debug = False
         self.add_source(u, u_0, dt)
         self.add_source(v, v_0, dt)
@@ -165,7 +160,8 @@ class NavierStrokes:
         self.advect(2, v, v_0, u_0, v_0, dt)
 
         self.project(u, v, u_0, v_0)
-        print "<<< VELOCITY STEP"
+        if self.debug:
+            print "<<< VELOCITY STEP"
 
 def main(argv):
     size = 128

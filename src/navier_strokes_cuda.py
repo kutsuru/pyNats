@@ -17,7 +17,7 @@ class NavierStrokesCuda:
 
     def __init__(self, size):
         self.size = size
-        self.debug = True
+        self.debug = False
 
         # Initialization of the data
         self.u = np.zeros((size, size)).astype(np.float32)
@@ -69,16 +69,16 @@ class NavierStrokesCuda:
             float dt  = 0.1;
             float dt0 = dt * size;
 
-            int idx = (threadIdx.x + 1) + (threadIdx.y + 1) * size;
+            int idx = threadIdx.x + threadIdx.y * size;
 
-            //printf("Index: %d, %d\\n", threadIdx.x, threadIdx.y);
+            float x = threadIdx.x + 1 - dt0 * u[idx];
+            float y = threadIdx.y + 1 - dt0 * v[idx];
 
-            float x = threadIdx.x + 1;// - dt0 * u[idx];
-            float y = threadIdx.y + 1;// - dt0 * v[idx];
-
-            printf("X value : %f, Y value : %f\\n", x, y);
             x = (x + 0.5 + abs(x - 0.5)) / 2;
-            y = (x + size + 0.5 - abs(x - (size + 0.5))) / 2;
+            x = (x + size + 0.5 - abs(x - (size + 0.5))) / 2;
+
+            y = (y + 0.5 + abs(y - 0.5)) / 2;
+            y = (y + size + 0.5 - abs(y - (size + 0.5))) / 2;
 
             int i0 = (int) x;
             int i1 = i0 + 1;
@@ -147,25 +147,25 @@ class NavierStrokesCuda:
         gX = 1
         gY = 1
 
-        #u_gpu = cuda.mem_alloc(u[1:-1, 1:-1].nbytes)
-        #cuda.memcpy_htod(u_gpu, u[1:-1, 1:-1].reshape(size**2))
+        u_gpu = cuda.mem_alloc(u[1:-1, 1:-1].nbytes)
+        cuda.memcpy_htod(u_gpu, u[1:-1, 1:-1].reshape(size**2))
 
-        u_gpu = cuda.In(u[1:-1, 1:-1].reshape(size**2))
+        #u_gpu = cuda.In(u[1:-1, 1:-1].reshape(size**2))
 
         if self.debug and not np.array_equal(u, np.zeros((self.size, self.size))):
             print ">>> U"
             print u
             print "<<< U"
 
-        #v_gpu = cuda.mem_alloc(v[1:-1, 1:-1].nbytes)
-        #cuda.memcpy_htod(v_gpu, v[1:-1, 1:-1].reshape(size**2))
+        v_gpu = cuda.mem_alloc(v[1:-1, 1:-1].nbytes)
+        cuda.memcpy_htod(v_gpu, v[1:-1, 1:-1].reshape(size**2))
 
-        v_gpu = cuda.In(v[1:-1, 1:-1].reshape(size**2))
+        #v_gpu = cuda.In(v[1:-1, 1:-1].reshape(size**2))
 
-        #d_0_gpu = cuda.mem_alloc(d_0.nbytes)
-        #cuda.memcpy_htod(d_0_gpu, d_0.reshape(self.size**2))
+        d_0_gpu = cuda.mem_alloc(d_0.nbytes)
+        cuda.memcpy_htod(d_0_gpu, d_0.reshape(self.size**2))
 
-        d_0_gpu = cuda.In(d_0.reshape(self.size**2))
+        #d_0_gpu = cuda.In(d_0.reshape(self.size**2))
 
         #d_gpu = cuda.mem_alloc(d[1:-1, 1:-1].nbytes)
         #cuda.memcpy_htod(d_gpu, d[1:-1, 1:-1].reshape(size**2))
@@ -180,8 +180,8 @@ class NavierStrokesCuda:
         self.func_easy(u_gpu, v_gpu, d_gpu, d_0_gpu,
                        block=(bX, bY, 1), grid=(gX, gY))
 
-        #d_result = np.empty_like(d[1:-1, 1:-1])
-        #cuda.memcpy_dtod(d_result, d_gpu)
+        #d_result = np.empty_like(d[1:-1, 1:-1]).astype(np.float32)
+        #cuda.memcpy_dtod(d_result, d_gpu, d_result.nbytes)
 
         if self.debug:
             print ">>> Result >>>"
@@ -208,8 +208,10 @@ class NavierStrokesCuda:
 
 
     def density_step(self, x, x_0, u, v, diff, dt):
-        print "DENSITY STEP >>>"
-        self.debug = True
+        if self.debug:
+            print "DENSITY STEP >>>"
+
+        self.debug = False
         self.add_source(x, x_0, dt)
 
         x, x_0 = x_0, x # Swap
@@ -217,10 +219,14 @@ class NavierStrokesCuda:
 
         x, x_0 = x_0, x # Swap
         self.advect(0, x, x_0, u, v, dt)
-        print "<<< DENSITY STEP"
+
+        if self.debug:
+            print "<<< DENSITY STEP"
 
     def velocity_step(self, u, v, u_0, v_0, visc, dt):
-        print "VELOCITY STEP >>>"
+        if self.debug:
+            print "VELOCITY STEP >>>"
+
         self.debug = False
         self.add_source(u, u_0, dt)
         self.add_source(v, v_0, dt)
@@ -238,7 +244,9 @@ class NavierStrokesCuda:
         self.advect(2, v, v_0, u_0, v_0, dt)
 
         self.project(u, v, u_0, v_0)
-        print "<<< VELOCITY STEP"
+
+        if self.debug:
+            print "<<< VELOCITY STEP"
 
 
 def main(argv):
