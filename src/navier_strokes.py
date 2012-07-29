@@ -8,6 +8,7 @@ class NavierStrokes:
 
     def __init__(self, size):
         self.size = size
+        self.debug = True
 
         self.u = np.zeros((self.size, self.size))
         self.v = np.zeros((self.size, self.size))
@@ -68,43 +69,23 @@ class NavierStrokes:
     def advect(self, b, d, d_0, u, v, dt):
         dt_0 = dt * (self.size - 2)
 
-        """
-        x = self.line_matrix - dt_0 * u[1:-1, 1:-1]
-        y = self.column_matrix - dt_0 * v[1:-1, 1:-1]
+        if self.debug and not np.array_equal(u, np.zeros((self.size, self.size))):
+            print ">>> U"
+            print u
+            print "<<< U"
 
-        # Limit X and Y values to avoid the solver to blow up
-        m_min = np.zeros((self.size - 2, self.size - 2))
-        m_min = 0.5
 
-        m_max = np.zeros((self.size - 2, self.size - 2))
-        m_max = self.size - 2 + 0.5
+        if self.debug:
+            print ">>> Entry >>>"
+            print d
+            print "<<< Kernel Launch <<<"
 
-        x = (x + m_min + np.abs(x - m_min)) / 2
-        x = (x + m_max - np.abs(x - m_max)) / 2
-
-        y = (y + m_min + np.abs(y - m_min)) / 2
-        y = (y + m_max - np.abs(y - m_max)) / 2
-
-        i_0 = x.round()
-        i_1 = i_0 + 1
-
-        j_0 = y.round()
-        j_1 = j_0 + 1
-
-        s_1 = x - i_0
-        s_0 = 1 - s_1
-
-        t_1 = y - j_0
-        t_0 = 1 - t_1
-
-        d[1:-1, 1:-1] = s_0 * (t_0 * d_0[1:-1, 1:-1] + t_1 * d_0[1:-1, 2:]) \
-                + s_1 * (t_0 * d_0[2:, 1:-1] + t_1 * d_0[2:, 2:])
-
-        """
         for i in xrange(1, self.size - 1):
             for j in xrange(1, self.size - 1):
                 x = i - dt_0 * u[i][j]
                 y = j - dt_0 * v[i][j]
+
+                print "X Value : " + str(x) + ", Y Value : " + str(y)
 
                 if x < 0.5:
                     x = 0.5
@@ -131,9 +112,14 @@ class NavierStrokes:
                 d[i][j] = s_0 * (t_0 * d_0[i_0, j_0] + t_1 * d_0[i_0][j_1]) +\
                           s_1 * (t_0 * d_0[i_1][j_0] + t_1 * d_0[i_1][j_1])
 
+        if self.debug:
+            print ">>> Result >>>"
+            print d
+            print "<<< End Result <<<"
+
         self.set_boundary(b, d)
 
-    def project(self, u, v, p , div):     
+    def project(self, u, v, p , div):
         div[1:-1, 1:-1] = -0.5 * (u[2:, 1:-1] - u[:-2, 1:-1] + v[1:-1, 2:] -
                           v[1:-1, :-2]) / (self.size - 2)
         self.set_boundary(0, div)
@@ -144,12 +130,13 @@ class NavierStrokes:
 
         u[1:-1, 1:-1] -= 0.5 * (self.size - 2) * (p[2:, 1:-1] - p[:-2, 1:-1])
         v[1:-1, 1:-1] -= 0.5 * (self.size - 2) * (p[1:-1, 2:] - p[1:-1, :-2])
-        
+
         self.set_boundary(1, u)
         self.set_boundary(2, v)
 
-
     def density_step(self, x, x_0, u, v, diff, dt):
+        print "DENSITY STEP >>>"
+        self.debug = True
         self.add_source(x, x_0, dt)
 
         x, x_0 = x_0, x # Swap
@@ -157,8 +144,11 @@ class NavierStrokes:
 
         x, x_0 = x_0, x # Swap
         self.advect(0, x, x_0, u, v, dt)
+        print "<<< DENSITY STEP"
 
     def velocity_step(self, u, v, u_0, v_0, visc, dt):
+        print "VELOCITY STEP >>>"
+        self.debug = False
         self.add_source(u, u_0, dt)
         self.add_source(v, v_0, dt)
 
@@ -175,7 +165,7 @@ class NavierStrokes:
         self.advect(2, v, v_0, u_0, v_0, dt)
 
         self.project(u, v, u_0, v_0)
-
+        print "<<< VELOCITY STEP"
 
 def main(argv):
     size = 128

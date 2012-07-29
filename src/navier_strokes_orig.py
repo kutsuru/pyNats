@@ -7,9 +7,9 @@ import numpy as np
 class NavierStrokesOrig:
 
     def __init__(self, size):
-
         self.size = size
-        
+        self.debug = False
+
         self.u = np.zeros((self.size, self.size))
         self.v = np.zeros((self.size, self.size))
         self.u_prev = np.zeros((self.size, self.size))
@@ -62,6 +62,11 @@ class NavierStrokesOrig:
     def advect(self, b, d, d_0, u, v, dt):
         dt_0 = dt * (self.size - 2)
 
+        if self.debug:
+            print ">>> Entry >>>"
+            print d
+            print "<<< Kernel Launch <<<"
+
         for i in xrange(1, self.size - 1):
             for j in xrange(1, self.size - 1):
                 x = i - dt_0 * u[i][j]
@@ -92,12 +97,17 @@ class NavierStrokesOrig:
                 d[i][j] = s_0 * (t_0 * d_0[i_0, j_0] + t_1 * d_0[i_0][j_1]) +\
                           s_1 * (t_0 * d_0[i_1][j_0] + t_1 * d_0[i_1][j_1])
 
+        if self.debug:
+            print ">>> Result >>>"
+            print d
+            print "<<< End Result <<<"
+
         self.set_boundary(b, d)
 
     def project(self, u, v, p , div):
 
-        h = 1. / (self.size - 2)        
-        
+        h = 1. / (self.size - 2)
+
         for i in xrange(1, self.size - 1):
             for j in xrange(1, self.size - 1):
                 div[i][j] = -0.5 * h * (u[i + 1][j] - u[i - 1][j] + v[i][j + 1]
@@ -105,7 +115,7 @@ class NavierStrokesOrig:
                 p[i][j] = 0
         self.set_boundary(0, div)
         self.set_boundary(0, p)
-        
+
         self.linear_solve(0, p, div, 1, 4)
 
         for i in xrange(1, self.size - 1):
