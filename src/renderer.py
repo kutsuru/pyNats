@@ -14,6 +14,7 @@ from OpenGL.GL import *
 from navier_strokes import NavierStrokes
 from navier_strokes_orig import NavierStrokesOrig
 from navier_strokes_cuda import NavierStrokesCuda
+from navier_strokes_test_cuda import NavierStrokesTestCuda
 
 from lazynavier import LazyNavier
 
@@ -84,9 +85,10 @@ def main(args):
     rendered = []
 
     bs = Boids(bs_size, 0, 0, width, height)
-    nats = LazyNavier(NavierStrokes, size=ns_size)
+    #nats = LazyNavier(NavierStrokes, size=ns_size)
     #nats = LazyNavier(NavierStrokesOrig, size=ns_size)
     #nats = LazyNavier(NavierStrokesCuda, size=ns_size)
+    nats = LazyNavier(NavierStrokesTestCuda, size=ns_size)
 
     mdensity = MatrixDensity(nats.me.density_prev, 0, 0, width, height)
     mvectors = MatrixVectors(nats.me.u_prev, nats.me.v_prev, 0, 0, width, height)

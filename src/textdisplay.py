@@ -21,14 +21,14 @@ See original source and C based tutorial at <http://nehe.gamedev.net>.
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.WGL import *
-import win32ui, sys
+import sys
 
 class TextDisplay(object):
     def __init__(self, text, x, y, screensize=(640, 480), color=(0.4,0.4,0.8), fontname="Courier", size=24):
         """Handles drawing text on the screen."""
-        self.BuildFont(fontname,-size)
+        #self.BuildFont(fontname,-size)
         self.screensize = screensize
-        
+
         self.color = color
         self.text = text
         self.x = x
@@ -38,7 +38,7 @@ class TextDisplay(object):
         """
         Load a font as a set of OpenGL drawing lists, for quick
         drawing of each letter.
-        """        
+        """
         wgldc = wglGetCurrentDC()
         hDC = win32ui.CreateDCFromHandle(wgldc)
         properties = {"name":fontname, "width":width, "height":size, "weight":weight}
@@ -53,11 +53,11 @@ class TextDisplay(object):
         Draw text on the screen. Coords = actual screen coords.
         Y gets reversed because OpenGL does too, treating LL corner as
         Y=0.
-        """        
+        """
         glColor(self.color)
         glRasterPos2i(self.x,self.screensize[1]-self.y)
         glPushAttrib(GL_LIST_BIT)
-        glListBase(self.fontlists - 32)
+        #glListBase(self.fontlists - 32)
         glCallLists(text)
         glPopAttrib()
 
